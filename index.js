@@ -1,63 +1,57 @@
-const { createStore } = require("redux");
+const { default: axios } = require("axios");
+const { createStore, applyMiddleware } = require("redux");
+const { default: thunk } = require("redux-thunk");
+``;
+// Constants
+const GET_TODOS_REQUEST = "TODOS_REQUEST";
+const GET_TODOS_SUCCESS = "TODOS_SUCCESS";
+const GET_TODOS_FAILED = "TODOS_FAILED";
 
-// Products constants
-const GET_PRODUCT = "GET_PRODUCT";
-const ADD_PRODUCT = "ADD_PRODUCT";
-
-// Carts constants
-const GET_CART = "GET_CART";
-const ADD_CART = "ADD_CART";
-
-// Product's initial state.
-const initialProductsState = {
-  products: ["Pen", "Book"],
-  countOfProducts: 2,
-};
-// Product's initial state.
-const initialCartsState = {
-  products: ["Salt"],
-  countOfProducts: 1,
+// Initial State
+const initialToDosState = {
+  toDos: [],
+  isLoading: false,
+  error: null,
 };
 
-// Product's actions
-const getProduct = () => {
+// Actions
+const getToDosRequest = () => {
   return {
-    type: GET_PRODUCT,
+    type: GET_TODOS_REQUEST,
+  };
+};
+const getToDosFailed = (error) => {
+  return {
+    type: GET_TODOS_FAILED,
+    payload: error,
+  };
+};
+const getToDosSuccess = (toDos) => {
+  return {
+    type: GET_TODOS_SUCCESS,
+    payload: toDos,
   };
 };
 
-const addProduct = (product) => {
-  return {
-    type: ADD_PRODUCT,
-    payload: product,
-  };
-};
-// Cart's actions
-const getCarts = () => {
-  return {
-    type: GET_CART,
-  };
-};
-
-const addCart = (product) => {
-  return {
-    type: ADD_CART,
-    payload: product,
-  };
-};
-
-// Product Reducer
-const productReducer = (state = initialProductsState, action) => {
-  switch (action.type) {
-    case GET_PRODUCT:
+// Todo's Reducer.
+const toDosReducer = (state = initialToDosState, action) => {
+  switch (action.key) {
+    case GET_TODOS_REQUEST:
       return {
-        products: [...state.products],
-        countOfProducts: state.countOfProducts,
+        ...state,
+        isLoading: true,
       };
-    case ADD_PRODUCT:
+    case GET_TODOS_SUCCESS:
       return {
-        products: [...state.products, action.payload],
-        countOfProducts: state.countOfProducts + 1,
+        ...state,
+        isLoading: false,
+        toDos: action.payload,
+      };
+    case GET_TODOS_FAILED:
+      return {
+        ...state,
+        isLoading: false,
+        error: action.payload,
       };
 
     default:
@@ -65,10 +59,27 @@ const productReducer = (state = initialProductsState, action) => {
   }
 };
 
-const store = createStore(productReducer);
+const fetchData = () => {
+  return (dispatch) => {
+    dispatch(getToDosRequest());
+    axios
+      .get("https://jsonplaceholder.typicode.com/todos")
+      .then((res) => {
+        const allTodo = res.data;
+        const titles = allTodo.map((todo) => todo.title);
+        dispatch(getToDosSuccess(titles));
+      })
+      .catch((error) => {
+        const errorMessage = error.message;
+        dispatch(getToDosFailed(errorMessage));
+      });
+  };
+};
+
+const store = createStore(toDosReducer, applyMiddleware(thunk));
+
 store.subscribe(() => {
   console.log(store.getState());
 });
 
-store.dispatch(getProduct());
-store.dispatch(addProduct("Paper"));
+store.dispatch(fetchData());
