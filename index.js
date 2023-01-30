@@ -1,60 +1,74 @@
 const { createStore } = require("redux");
-// Const
-const INCREMENT = "INCREMENT";
-const DECREMENT = "DECREMENT";
-const RESET = "RESET";
 
-const initialState = {
-  count: 0,
-};
+// Products constants
+const GET_PRODUCT = "GET_PRODUCT";
+const ADD_PRODUCT = "ADD_PRODUCT";
 
-const incrementAction = () => {
-  return {
-    type: INCREMENT,
-  };
+// Carts constants
+const GET_CART = "GET_CART";
+const ADD_CART = "ADD_CART";
+
+// Product's initial state.
+const initialProductsState = {
+  products: ["Pen", "Book"],
+  countOfProducts: 2,
 };
-const decrementAction = () => {
-  return {
-    type: DECREMENT,
-  };
-};
-const resetAction = () => {
-  return {
-    type: RESET,
-  };
+// Product's initial state.
+const initialCartsState = {
+  products: ["Salt"],
+  countOfProducts: 1,
 };
 
-const counterReducer = (state = initialState, action) => {
+// Product's actions
+const getProduct = () => {
+  return {
+    type: GET_PRODUCT,
+  };
+};
+
+const addProduct = (product) => {
+  return {
+    type: ADD_PRODUCT,
+    payload: product,
+  };
+};
+// Cart's actions
+const getCarts = () => {
+  return {
+    type: GET_CART,
+  };
+};
+
+const addCart = (product) => {
+  return {
+    type: ADD_CART,
+    payload: product,
+  };
+};
+
+// Product Reducer
+const productReducer = (state = initialProductsState, action) => {
   switch (action.type) {
-    case INCREMENT:
+    case GET_PRODUCT:
       return {
-        ...state,
-        count: state.count + 1,
+        products: [...state.products],
+        countOfProducts: state.countOfProducts,
       };
-    case DECREMENT:
+    case ADD_PRODUCT:
       return {
-        ...state,
-        count: state.count - 1,
-      };
-    case RESET:
-      return {
-        ...state,
-        count: 0,
+        products: [...state.products, action.payload],
+        countOfProducts: state.countOfProducts + 1,
       };
 
     default:
-      state;
+      return state;
   }
 };
 
-const store = createStore(counterReducer);
-
+const store = createStore(productReducer);
 store.subscribe(() => {
   console.log(store.getState());
 });
 
-store.dispatch(incrementAction());
-store.dispatch(incrementAction());
-store.dispatch(decrementAction());
-store.dispatch(resetAction());
-store.dispatch(incrementAction());
+store.dispatch(getProduct());
+store.dispatch(addProduct("Paper"));
